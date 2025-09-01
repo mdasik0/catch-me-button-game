@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch Me Button Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .game-container {
+            padding: 20px;
+            height: 100vh;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats {
+            font-size: 1rem;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .catch-button {
+            position: absolute;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
+            transform: translateZ(0);
+            z-index: 10;
+            left: 100px;
+            top: 200px;
+        }
+
+        .catch-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .catch-button:active {
+            transform: scale(0.95);
+        }
+
+        .catch-button.moving {
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .particles {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: float 2s ease-out forwards;
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0);
+            }
+        }
+
+        .reset-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        .success-message.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🏃‍♂️ Catch Me If You Can! 🏃‍♂️</h1>
+            <div class="stats">
+                <span>Catches: <span id="catches">0</span></span> | 
+                <span>Attempts: <span id="attempts">0</span></span> | 
+                <span>Success Rate: <span id="success-rate">0</span>%</span>
+            </div>
+        </div>
+
+        <button id="catchButton" class="catch-button">
+            Catch Me! 🎯
+        </button>
+
+        <button id="resetButton" class="reset-button">
+            Reset Game 🔄
+        </button>
+
+        <div id="particles" class="particles"></div>
+        
+        <div id="successMessage" class="success-message">
+            🎉 Got me! Well played! 🎉
+        </div>
+    </div>
+
+    <script>
+        console.log("Vanilla JS Catch Me Game loaded!");
+
+        class CatchMeGame {
+            constructor() {
+                this.catches = 0;
+                this.attempts = 0;
+                this.button = document.getElementById('catchButton');
+                this.resetButton = document.getElementById('resetButton');
+                this.successMessage = document.getElementById('successMessage');
+                this.particlesContainer = document.getElementById('particles');
+                
+                this.init();
+                this.setupPromise();
+            }
+
+            init() {
+                // Event listeners
+                this.button.addEventListener('mouseenter', () => this.moveButton());
+                this.button.addEventListener('click', () => this.catchSuccess());
+                this.resetButton.addEventListener('click', () => this.resetGame());
+                
+                // Prevent button from being dragged
+                this.button.addEventListener('dragstart', (e) => e.preventDefault());
+                
+                this.updateStats();
+            }
+
+            setupPromise() {
+                const testPromise = new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const success = Math.random() > 0.5; // Random success/fail
+                        if (success) {
+                            resolve("Good Job with the game!");
+                        } else {
+                            reject("You need more practice!");
+                        }
+                    }, 2000);
+                });
+
+                testPromise
+                    .then((result) => console.log("Promise fulfilled:", result))
+                    .catch((error) => console.log("Promise rejected:", error));
+            }
+
+            moveButton() {
+                this.attempts++;
+                
+                // Add moving animation class
+                this.button.classList.add('moving');
+                
+                // Calculate safe boundaries (accounting for button size)
+                const buttonRect = this.button.getBoundingClientRect();
+                const maxX = window.innerWidth - buttonRect.width - 20;
+                const maxY = window.innerHeight - buttonRect.height - 20;
+                
+                // Generate random position
+                const newX = Math.random() * Math.max(0, maxX);
+                const newY = Math.random() * Math.max(0, maxY - 100); // Leave space for header
+                
+                // Move button
+                this.button.style.left = newX + 'px';
+                this.button.style.top = Math.max(150, newY) + 'px'; // Ensure it's below header
+                
+                // Create particles effect
+                this.createParticles(buttonRect.left + buttonRect.width/2, buttonRect.top + buttonRect.height/2);
+                
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    this.button.classList.remove('moving');
+                }, 400);
+                
+                this.updateStats();
+            }
+
+            catchSuccess() {
+                this.catches++;
+                this.attempts++;
+                
+                // Show success message
+                this.successMessage.classList.add('show');
+                setTimeout(() => {
+                    this.successMessage.classList.remove('show');
+                }, 2000);
+                
+                // Create celebration particles
+                const buttonRect = this.button.getBoundingClientRect();
+                this.createCelebrationParticles(buttonRect.left + buttonRect.width/2, buttonRect.top + buttonRect.height/2);
+                
+                // Move button to new position after catch
+                setTimeout(() => {
+                    this.moveButton();
+                }, 1000);
+                
+                this.updateStats();
+            }
+
+            createParticles(x, y) {
+                for (let i = 0; i < 5; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = (x + Math.random() * 20 - 10) + 'px';
+                    particle.style.top = (y + Math.random() * 20 - 10) + 'px';
+                    
+                    this.particlesContainer.appendChild(particle);
+                    
+                    // Remove particle after animation
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 2000);
+                }
+            }
+
+            createCelebrationParticles(x, y) {
+                for (let i = 0; i < 15; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = (x + Math.random() * 40 - 20) + 'px';
+                    particle.style.top = (y + Math.random() * 40 - 20) + 'px';
+                    particle.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                    
+                    this.particlesContainer.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 2000);
+                }
+            }
+
+            updateStats() {
+                document.getElementById('catches').textContent = this.catches;
+                document.getElementById('attempts').textContent = this.attempts;
+                
+                const successRate = this.attempts > 0 ? ((this.catches / this.attempts) * 100).toFixed(1) : 0;
+                document.getElementById('success-rate').textContent = successRate;
+            }
+
+            resetGame() {
+                this.catches = 0;
+                this.attempts = 0;
+                
+                // Reset button position
+                this.button.style.left = '100px';
+                this.button.style.top = '200px';
+                
+                // Clear particles
+                this.particlesContainer.innerHTML = '';
+                
+                this.updateStats();
+                
+                console.log("Game reset!");
+            }
+        }
+
+        // Initialize game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new CatchMeGame();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            console.log("Window resized - button boundaries updated");
+        });
+    </script>
+</body>
+</html>
