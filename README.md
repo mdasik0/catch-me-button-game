@@ -41,8 +41,5 @@ Try the game live at:
 
 ## Screenshots
 
-*(Include images if available — feel free to replace these paths with actual screenshots of your game.)*
+<img width="1600" height="737" alt="image" src="https://github.com/user-attachments/assets/116c1c94-33ed-4c05-ab73-9f1baf726175" />
 
-```markdown
-![Main screen with the button](screenshots/main-screen.png)
-![Button teleporting away on hover](screenshots/button-escape.png)
