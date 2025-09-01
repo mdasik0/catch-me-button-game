@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch Me Button</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            position: relative;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        #catchButton {
+            position: absolute;
+            padding: 12px 24px;
+            background-color: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            left: 50px;
+            top: 100px;
+        }
+
+        #catchButton:hover {
+            background-color: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Try to catch the button!</h1>
+    
+    <button id="catchButton">Catch me!</button>
+
+    <script>
+        console.log("learning and testing code.");
+
+        // Promise functionality
+        const testPromise = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                const success = false;
+                if (success) {
+                    resolve("Good Job");
+                } else {
+                    reject("You did a bad job");
+                }
+            }, 2000);
+        });
+
+        testPromise
+            .then((r) => console.log("promise fulfilled", r))
+            .catch((err) => console.log("promise rejected", err));
+
+        // Button functionality
+        const button = document.getElementById('catchButton');
+
+        function moveButton() {
+            const randomX = Math.random() * (window.innerWidth - 200);
+            const randomY = Math.random() * (window.innerHeight - 100);
+            
+            button.style.left = randomX + 'px';
+            button.style.top = randomY + 'px';
+        }
+
+        button.addEventListener('mouseover', moveButton);
+    </script>
+</body>
+</html>
